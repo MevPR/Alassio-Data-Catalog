@@ -1,0 +1,63 @@
+// Data product design workflow (state machine of src/lib/design-workflow.js / server/design-workflow.js, v1.79).
+digraph design {
+  rankdir=TB; nodesep=0.3; ranksep=0.32; newrank=true; bgcolor="white";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#D9D9D6", fillcolor="white", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=8.5, color="#6B6F73", arrowsize=0.7];
+
+  subgraph cluster_p1 { label="Phase 1 · Data Sourcing"; fontname="Helvetica-Bold"; fontsize=11; color="#2271B3"; style="rounded"; bgcolor="#F2F7FB";
+    submitted [label="Submitted\n(Project Manager)", fillcolor="#FFF6E5"];
+    ba_rev [label="With Business Analyst\n(refine the design)", fillcolor="#E4EEF7"];
+    sourcing [label="Sourcing being documented\n(source system, BPO,\nLeanIX, steward)", fillcolor="#E4EEF7"];
+    src_ok [label="Refinement approved ·\nsourcing documented", fillcolor="#E4EEF7"];
+    ba_rej [label="Returned by\nBusiness Analyst", fillcolor="#FFF6E5"];
+    owner_rev [label="Waiting for\nBPO approval", fillcolor="#E4EEF7"];
+    owner_ok [label="Data use approved by BPO\n(confirming document attached)", fillcolor="#E4EEF7"];
+    owner_rej [label="Declined by BPO", fillcolor="#FFF6E5"];
+    ing_rev [label="With Data Ingestion", fillcolor="#E4EEF7"];
+    ing_ok [label="Ingested tables confirmed\n(with location)", fillcolor="#E4EEF7"];
+    ing_rej [label="Returned by\nData Ingestion", fillcolor="#FFF6E5"];
+  }
+  subgraph cluster_p2 { label="Phase 2 · Data Product Refinement"; fontname="Helvetica-Bold"; fontsize=11; color="#2271B3"; style="rounded"; bgcolor="#F2F7FB";
+    ref_rev [label="With Business Analyst ·\nrefinement", fillcolor="#E4EEF7"];
+    ref_ok [label="Refinement completed", fillcolor="#E4EEF7"];
+    ref_rej [label="Returned by\nBusiness Analyst · refinement", fillcolor="#FFF6E5"];
+  }
+  subgraph cluster_p3 { label="Phase 3 · Development & Test / Sign-off"; fontname="Helvetica-Bold"; fontsize=11; color="#2271B3"; style="rounded"; bgcolor="#F2F7FB";
+    dev [label="In development", fillcolor="#E4EEF7"];
+    uat [label="In UAT", fillcolor="#E4EEF7"];
+    sit [label="In SIT", fillcolor="#E4EEF7"];
+    rel [label="Releasing to PRD", fillcolor="#E4EEF7"];
+    signoff [label="Awaiting sign-off", fillcolor="#E4EEF7"];
+    dev_rej [label="Returned by\nDevelopment", fillcolor="#FFF6E5"];
+    done [label="Done\nTags applied to the gold schema\n(Data Product, Project, Use Case)", fillcolor="#E8F5E9", color="#2E7D32"];
+  }
+  withdrawn [label="Withdrawn\n(with reason)", fillcolor="#F3F3F1", color="#9E9E9E"];
+
+  submitted -> ba_rev [label="forward to Business Analyst\n(submitter / admin)"];
+  ba_rev -> sourcing [label="design refined (BA)"];
+  sourcing -> src_ok [label="document the sourcing (BA)"];
+  ba_rev -> ba_rej [label="return + reason"];
+  sourcing -> ba_rej [label="return + reason"];
+  ba_rej -> ba_rev [label="edit & forward", style=dashed];
+  src_ok -> owner_rev [label="request data owner approval\n(submitter / admin)"];
+  owner_rev -> owner_ok [label="approve data use (BPO)"];
+  owner_rev -> owner_rej [label="decline + reason"];
+  owner_rej -> owner_rev [label="rework & request again", style=dashed];
+  owner_ok -> ing_rev [label="forward to Data Ingestion\n(submitter / admin)"];
+  ing_rev -> ing_ok [label="confirm ingested tables\n(Data Ingestion)"];
+  ing_rev -> ing_rej [label="return + reason"];
+  ing_rej -> ing_rev [label="edit & forward", style=dashed];
+  ing_ok -> ref_rev [label="forward to refinement\n(submitter / admin)"];
+  ref_rev -> ref_ok [label="refinement completed (BA)"];
+  ref_rev -> ref_rej [label="return + reason"];
+  ref_rej -> ref_rev [label="edit & forward", style=dashed];
+  ref_ok -> dev [label="forward to Development\n(submitter / admin)"];
+  dev -> uat [label="development completed"];
+  uat -> sit [label="UAT completed"];
+  sit -> rel [label="SIT completed"];
+  rel -> signoff [label="released to PRD"];
+  signoff -> done [label="sign-off\n(submitter / admin)"];
+  dev -> dev_rej [label="return + reason\n(from any test step)"];
+  dev_rej -> dev [label="edit & forward", style=dashed];
+  submitted -> withdrawn [style=dotted, label="withdraw + reason\n(at any step before Done)"];
+}

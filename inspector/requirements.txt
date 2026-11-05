@@ -1,0 +1,5 @@
+flask>=3.0
+sqlalchemy>=2.0
+pymysql>=1.1
+psycopg2-binary>=2.9
+duckdb>=1.0

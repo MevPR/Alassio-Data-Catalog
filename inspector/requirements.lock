@@ -1,0 +1,26 @@
+# Pinned install set of the source inspector (v1.73, F-I7) — requirements.txt keeps the lower bounds, this file is
+# what deployments and CI install:
+#   /opt/datahub-catalog/inspector/venv/bin/pip install -r /opt/datahub-catalog/inspector/requirements.lock
+# Resolved from requirements.txt with `pip install --dry-run --report` for CPython 3.11 and 3.12 on manylinux x86_64
+# (identical sets), choosing the newest release that was at least two weeks old on 2026-10-23 — which keeps
+# duckdb on 1.5.x (2.0.0 is two days old) and SQLAlchemy on 2.0.x (2.1 is a new minor line; 2.0.55 is a week old).
+# Transitive dependencies are pinned as well. Not pinned here: the optional dialects / JDBC bridge in
+# requirements-optional.txt (installed per site, versions depend on the database server and the JVM).
+# To refresh: bump requirements.txt if needed, re-resolve, run `npm run test:inspector` with the new set installed.
+
+# direct (requirements.txt)
+flask==3.1.3
+sqlalchemy==2.0.54
+pymysql==1.2.3
+psycopg2-binary==2.9.13
+duckdb==1.5.6
+
+# transitive
+blinker==1.9.0
+click==8.5.0
+itsdangerous==2.2.0
+jinja2==3.1.6
+markupsafe==3.0.4
+werkzeug==3.1.9
+typing-extensions==4.16.0
+greenlet==3.5.6 ; platform_machine == "aarch64" or platform_machine == "ppc64le" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64" or platform_machine == "win32" or platform_machine == "WIN32"

@@ -1,0 +1,14 @@
+# Optional dialects & JDBC — install what you need in the inspector's virtualenv
+# (/opt/datahub-catalog/inspector/venv/bin/pip install <package>):
+# pymssql              # Microsoft SQL Server / Azure SQL (SQLAlchemy mssql+pymssql; no ODBC driver needed)
+# oracledb             # Oracle (SQLAlchemy oracle+oracledb, thin mode — no Oracle client needed)
+# snowflake-sqlalchemy # Snowflake (SQLAlchemy snowflake://; pulls snowflake-connector-python)
+# ibm-db-sa            # IBM DB2 (SQLAlchemy)
+# sqlalchemy-hana
+# hdbcli               # SAP HANA (SQLAlchemy)
+# jaydebeapi
+# JPype1               # generic JDBC (requires a Java runtime, e.g. default-jre-headless)
+# Lake files (Parquet/CSV/JSON/Delta/Iceberg on S3/Azure) need no extra package: DuckDB installs its
+# httpfs / azure / delta / iceberg extensions on first use (the host needs internet access once).
+# OData/SuccessFactors, Kafka Schema Registry, Power BI and Informatica are served by the catalog server
+# (server/connectors/, Node) — the inspector needs no HTTP client package (v1.73).

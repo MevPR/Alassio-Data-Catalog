@@ -1,0 +1,17 @@
+# dependencies and build output (rebuilt with npm install / npm run build)
+node_modules/
+dist/
+# Python inspector virtualenv and caches
+inspector/venv/
+venv/
+.venv/
+__pycache__/
+*.pyc
+# runtime data, secrets, logs
+data/
+.env
+*.log
+# editor / OS
+.vscode/
+.idea/
+.DS_Store

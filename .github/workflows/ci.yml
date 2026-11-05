@@ -1,0 +1,40 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false   # a timing flake on one Node version must not cancel the others (v1.67.4)
+      matrix:
+        node: [22, 24, 26]
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env: { MARIADB_ROOT_PASSWORD: root, MARIADB_DATABASE: datahub_catalog_test, MARIADB_USER: datahub, MARIADB_PASSWORD: testpass123 }
+        ports: ["3306:3306"]
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=5s --health-retries=10
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_DB: datahub_catalog_test, POSTGRES_USER: datahub, POSTGRES_PASSWORD: testpass123 }
+        ports: ["5432:5432"]
+        options: --health-cmd="pg_isready -U datahub" --health-interval=5s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ matrix.node }}", cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - uses: actions/setup-python@v5   # v1.73 (F-I7): explicit interpreter + the pinned set, so the DuckDB / Flask checks run instead of skipping
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: inspector/requirements.lock }
+      - name: Inspector (offline — mode registry, HTTP status codes, shared helpers, DuckDB and lake files)
+        run: |
+          python -m pip install -r inspector/requirements.lock
+          npm run test:inspector
+      - name: End-to-end (server + MCP against MariaDB)
+        run: npm run test:e2e
+        env: { DB_HOST: 127.0.0.1, DB_USER: datahub, DB_PASSWORD: testpass123, DB_NAME: datahub_catalog_test }
+      - name: End-to-end (server + MCP against PostgreSQL)
+        run: npm run test:e2e
+        env: { DB_DRIVER: postgres, DB_HOST: 127.0.0.1, DB_PORT: "5432", DB_USER: datahub, DB_PASSWORD: testpass123, DB_NAME: datahub_catalog_test }

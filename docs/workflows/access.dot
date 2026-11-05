@@ -1,0 +1,14 @@
+digraph access {
+  rankdir=LR; nodesep=0.4; ranksep=0.6; bgcolor="white";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#D9D9D6", fillcolor="white", penwidth=1.2];
+  edge [fontname="Helvetica", fontsize=8.5, color="#6B6F73", arrowsize=0.7];
+  pick [label="Marketplace · Request access\nchoose data product + purpose\n(any role)", fillcolor="#FFF6E5"];
+  open [label="Open\nnotification → Admins and\nthe data owner of the product", fillcolor="#E4EEF7"];
+  approved [label="Approved", fillcolor="#E8F5E9", color="#2E7D32"];
+  rejected [label="Rejected", fillcolor="#F3F3F1", color="#9E9E9E"];
+  done [label="Done\n(access provisioned)", fillcolor="#E8F5E9", color="#2E7D32"];
+  pick -> open [label="submit"];
+  open -> approved [label="approve (Admin)\n→ message to requester"];
+  open -> rejected [label="reject (Admin)\n→ message to requester"];
+  approved -> done [label="mark done (Admin)"];
+}

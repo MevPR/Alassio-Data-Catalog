@@ -1,0 +1,99 @@
+[Unit]
+Description=Data Hub Data Catalog application server (auth, catalog storage, Databricks proxy)
+After=network.target mariadb.service
+Wants=mariadb.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/datahub-catalog
+ExecStart=/usr/bin/node /opt/datahub-catalog/server.js
+Restart=on-failure
+RestartSec=3
+Environment=PORT=3000
+Environment=NODE_ENV=production
+# Public URL of the app (invitation links; OAuth issuer for MCP clients since v1.58 — must be the public https origin)
+Environment=APP_URL=http://your-server.example.com
+# Set to 1 once the site is served over HTTPS
+Environment=COOKIE_SECURE=0
+# v1.66.1 security hardening: stored Databricks / Entra secrets are sealed with this key
+# (AES-256-GCM); set it once and keep it — without it existing sealed secrets cannot be read.
+# Environment=SECRETS_KEY=change-me-to-a-long-random-string
+# Native connectors refuse private / loopback / link-local targets; set 1 only for an internal-only network.
+# Environment=CONNECTORS_ALLOW_PRIVATE=0
+# Environment=CONNECTOR_ALLOW_INSECURE_TLS=0
+# Databricks workspace hosts outside *.azuredatabricks.net / *.cloud.databricks.com / *.gcp.databricks.com (comma-separated)
+# Environment=DATABRICKS_ALLOWED_HOSTS=
+# Environment=MCP_MAX_BATCH=50
+# Environment=OAUTH_REGISTER_PER_HOUR=20
+# Environment=HEALTHZ_DETAILS=0
+
+# ── Database connection: MariaDB (default) or PostgreSQL / Databricks Lakebase (DB_DRIVER=postgres, v1.59) ──
+# Environment=DB_DRIVER=postgres
+# Environment=DB_SSL=1
+# Lakebase: the service principal's OAuth token is the password — fetched per connection when
+# Environment=DB_PASSWORD_PROVIDER=databricks (needs DATABRICKS_HOST, DATABRICKS_CLIENT_ID, DATABRICKS_CLIENT_SECRET and LAKEBASE_ENDPOINT or LAKEBASE_INSTANCE)
+Environment=DB_HOST=127.0.0.1
+Environment=DB_PORT=3306
+Environment=DB_USER=datahub
+Environment=DB_PASSWORD=CHANGE_ME
+Environment=DB_NAME=datahub_catalog
+
+# Migration source: an existing JSON store (db.json) from v1.2 or earlier
+# found in this directory is imported into MariaDB on first start.
+Environment=DATA_DIR=/var/lib/datahub-catalog
+StateDirectory=datahub-catalog
+
+# ── Optional (v1.60): Python source inspector ──
+# DuckDB, lake files, SQL dialects (SQLAlchemy) and JDBC are introspected by the inspector service
+# (datahub-catalog-inspector, default http://127.0.0.1:3001). OData/SuccessFactors, Kafka Schema Registry,
+# Power BI and Informatica run natively in Node. Set INSPECTOR_URL to an empty string (or "off") on
+# installations without the inspector — e.g. Databricks Apps — and those source types disappear from the UI.
+# Environment=INSPECTOR_URL=http://127.0.0.1:3001
+
+# ── Optional (v1.59): identity, storage, scheduler, bind address ──
+# AUTH_MODE=header trusts an authenticating proxy in front of the app (Databricks Apps, oauth2-proxy)
+# Environment=AUTH_MODE=header
+# Environment=AUTH_HEADER_SECRET=change-me
+# Environment=AUTH_BOOTSTRAP_ADMINS=admin@example.com
+# Environment=AUTH_GROUPS_FROM=databricks
+# Backups: local (BACKUP_DIR) | s3 | azure | databricks
+# Environment=BACKUP_STORAGE=local
+# Environment=BACKUP_DIR=/var/lib/datahub-catalog/backups
+# External scheduler (cron / Databricks Job calls POST /admin/tasks/<name>/run with the TASKS_TOKEN bearer)
+# Environment=SCHEDULER=external
+# Environment=TASKS_TOKEN=change-me
+# Environment=IMPORT_CHUNK_ROWS=100000
+# Graceful shutdown finishes within 15 s
+TimeoutStopSec=20
+
+# ── Optional: MCP rate limits per credential and OAuth token lifetimes (v1.58 defaults shown) ──
+# Environment=MCP_RATE_PER_MIN=300
+# Environment=MCP_WRITE_RATE_PER_MIN=60
+# Environment=OAUTH_ACCESS_TTL_S=3600
+# Environment=OAUTH_REFRESH_TTL_D=30
+
+# ── Optional: initial admin (only used while no users exist) ──
+# Environment=ADMIN_EMAIL=admin@example.com
+# Environment=ADMIN_PASSWORD=change-me-please
+# Environment=ADMIN_NAME=Administrator
+
+# ── Optional: SMTP for invitation and password-reset e-mails (without it, admins hand out reset links) ──
+# Environment=SMTP_HOST=smtp.example.com
+# Environment=SMTP_PORT=587
+# Environment=SMTP_USER=catalog@example.com
+# Environment=SMTP_PASS=secret
+# Environment=SMTP_FROM=catalog@example.com
+
+# ── Optional: MCP server for AI agents ──
+# Enables POST /mcp (Model Context Protocol, Streamable HTTP) with this bearer token.
+# All catalog actions are available to agents; user management is NOT exposed.
+# Generate a token e.g. with: openssl rand -base64 32
+# Environment=MCP_TOKEN=CHANGE_ME_LONG_RANDOM_TOKEN
+
+# ── Optional: restrict Databricks proxy to specific workspaces ──
+# Environment=DATABRICKS_ALLOWED_HOSTS=adb-123.azuredatabricks.net
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=Data Hub Data Catalog source inspector (SQLAlchemy / JDBC introspection)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/datahub-catalog/inspector
+ExecStart=/opt/datahub-catalog/inspector/venv/bin/python /opt/datahub-catalog/inspector/app.py
+Restart=on-failure
+RestartSec=3
+Environment=INSPECTOR_PORT=3001
+# Directory where JDBC driver .jar files are placed by the admin:
+Environment=JDBC_DRIVER_DIR=/opt/datahub-catalog/jdbc-drivers
+
+[Install]
+WantedBy=multi-user.target

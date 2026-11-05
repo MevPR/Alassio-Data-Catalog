@@ -1,0 +1,71 @@
+# Alassio Data Catalog as a Databricks App (v1.61) — copy this file to the repository root as app.yaml
+# before `databricks apps deploy`, or point the deploy at this folder. Everything is configuration: the
+# same code runs standalone on Ubuntu with MariaDB + nginx + inspector.
+#
+# Resources to attach to the app (Compute › Apps › <app> › Edit › Resources):
+#   database  — a Lakebase (Postgres) database → injects PGHOST / PGPORT / PGUSER / PGDATABASE / PGSSLMODE / PGAPPNAME
+#   secret    — optional: TASKS_TOKEN, SMTP_PASS (valueFrom below)
+#   volume    — a Unity Catalog volume for backups (DATABRICKS_VOLUME_PATH)
+# User authorization (on-behalf-of-user) scopes needed for AUTH_GROUPS_FROM=databricks: "iam.current-user:read"
+# (the forwarded access token is used to read the caller's groups via SCIM /Me).
+command: ["node", "server.js"]
+env:
+  - name: NODE_ENV
+    value: production
+  # ── database: Lakebase through the app's service principal (DATABRICKS_HOST / CLIENT_ID / CLIENT_SECRET are injected) ──
+  - name: DB_DRIVER
+    value: postgres
+  - name: DB_PASSWORD_PROVIDER
+    value: databricks
+  # Lakebase Autoscaling (projects / branches / endpoints — the kind you create today): the endpoint resource name,
+  # Lakebase project › branch › Computes › "Get ID" › "Copy resource name"
+  - name: LAKEBASE_ENDPOINT
+    value: projects/<project-id>/branches/<branch-id>/endpoints/<endpoint-id>
+  # Lakebase Provisioned (instances created before March 2026): use LAKEBASE_INSTANCE instead
+  # - name: LAKEBASE_INSTANCE
+  #   value: alassio-catalog
+  - name: DB_SSL
+    value: "1"
+  # ── identity: the platform signs every caller in and forwards x-forwarded-email / -preferred-username / -access-token ──
+  - name: AUTH_MODE
+    value: header
+  - name: AUTH_BOOTSTRAP_ADMINS
+    value: admin@example.com   # first sign-in of these accounts creates them as admin
+  - name: AUTH_HEADER_DEFAULT_ROLES
+    value: guest
+  - name: AUTH_GROUPS_FROM
+    value: databricks                 # account groups → roles via Admin › SSO › Group mapping
+  - name: COOKIE_SECURE
+    value: "1"
+  - name: APP_URL
+    value: https://alassio-catalog-1234567890.1.azure.databricksapps.com   # the app URL (links in mails, CSRF origin)
+  # ── no Python inspector: APIs run natively, databases come through Unity Catalog / Lakehouse Federation ──
+  - name: INSPECTOR_URL
+    value: ""
+  # ── storage and scheduling: no persistent disk, no in-process cron ──
+  - name: DATA_DIR
+    value: /tmp/cortex
+  - name: BACKUP_STORAGE
+    value: databricks
+  - name: DATABRICKS_VOLUME_PATH
+    value: /Volumes/main/alassio/backups
+  - name: SCHEDULER
+    value: external                   # a Databricks Job calls POST /admin/tasks/<name>/run (see README)
+  - name: TASKS_TOKEN
+    valueFrom: tasks-token            # secret resource key
+  # ── mail (optional; egress must be allowed by the workspace network policy) ──
+  # - name: SMTP_HOST
+  #   value: smtp.example.com
+  # - name: SMTP_PORT
+  #   value: "587"
+  # - name: SMTP_USER
+  #   value: catalog@example.com
+  # - name: SMTP_PASS
+  #   valueFrom: smtp-pass
+  # - name: SMTP_FROM
+  #   value: catalog@example.com
+  # ── MCP: no static token — callers are authenticated by the platform and act as themselves ──
+  # - name: MCP_RATE_PER_MIN
+  #   value: "300"
+  - name: DATABRICKS_ALLOWED_HOSTS
+    value: adb-1234567890.1.azuredatabricks.net   # the workspace itself, for the interactive Unity Catalog import

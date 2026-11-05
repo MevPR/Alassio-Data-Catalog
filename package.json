@@ -1,0 +1,52 @@
+{
+  "name": "datahub-data-catalog",
+  "version": "1.79.7",
+  "private": true,
+  "description": "Alassio Data Catalog — self-hosted enterprise data catalog",
+  "repository": { "type": "git", "url": "git+https://github.com/MevPR/Alassio-Data-Catalog.git" },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "proxy": "node server.js",
+    "lint": "eslint src server mcp test okf.js catalog-diff.js csv-import.js csv-export.js uc-writeback.js permissions.js mcp.js server.js",
+    "test": "vitest run",
+    "test:e2e": "node --test --test-concurrency=1 test/e2e/*.test.mjs",
+    "test:inspector": "python3 inspector/test_registry.py && python3 inspector/test_common.py && python3 inspector/test_lakefiles.py",
+    "ci": "npm run lint && npm run test && npm run build"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "cookie-parser": "^1.4.6",
+    "express": "^5.2.1",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.48.0",
+    "mysql2": "^3.11.0",
+    "nodemailer": "^10.0.10",
+    "papaparse": "^5.4.1",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jsdom": "^30.0.1",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "overrides": {
+    "minimatch": "^11.0.4"
+  }
+}

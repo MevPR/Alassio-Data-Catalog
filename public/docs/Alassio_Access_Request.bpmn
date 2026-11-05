@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_access" targetNamespace="https://alassio.example/bpmn">
+<bpmn:collaboration id="Collab"><bpmn:participant id="Pool" name="Access request" processRef="Proc"/></bpmn:collaboration>
+<bpmn:process id="Proc" isExecutable="false"><bpmn:laneSet id="Lanes">
+<bpmn:lane id="lane_req" name="Requester (any role)"><bpmn:flowNodeRef>start</bpmn:flowNodeRef><bpmn:flowNodeRef>pick</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="lane_own" name="Data Owner · Admin"><bpmn:flowNodeRef>review</bpmn:flowNodeRef><bpmn:flowNodeRef>gw</bpmn:flowNodeRef><bpmn:flowNodeRef>approve</bpmn:flowNodeRef><bpmn:flowNodeRef>reject</bpmn:flowNodeRef><bpmn:flowNodeRef>provision</bpmn:flowNodeRef><bpmn:flowNodeRef>done</bpmn:flowNodeRef><bpmn:flowNodeRef>end</bpmn:flowNodeRef><bpmn:flowNodeRef>endr</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="lane_sys" name="Alassio Data Catalog (system)"><bpmn:flowNodeRef>notify1</bpmn:flowNodeRef><bpmn:flowNodeRef>notify2</bpmn:flowNodeRef><bpmn:flowNodeRef>notify3</bpmn:flowNodeRef></bpmn:lane>
+</bpmn:laneSet>
+<bpmn:startEvent id="start" name="Need access to a data product"><bpmn:outgoing>f_start_pick</bpmn:outgoing></bpmn:startEvent>
+<bpmn:userTask id="pick" name="Request access: choose data product, state the purpose"><bpmn:incoming>f_start_pick</bpmn:incoming><bpmn:outgoing>f_pick_notify1</bpmn:outgoing></bpmn:userTask>
+<bpmn:serviceTask id="notify1" name="Store request (Open), notify Admins and the data owner of the product"><bpmn:incoming>f_pick_notify1</bpmn:incoming><bpmn:outgoing>f_notify1_review</bpmn:outgoing></bpmn:serviceTask>
+<bpmn:userTask id="review" name="Review request (purpose, requester)"><bpmn:incoming>f_notify1_review</bpmn:incoming><bpmn:outgoing>f_review_gw</bpmn:outgoing></bpmn:userTask>
+<bpmn:exclusiveGateway id="gw" name="Approve?"><bpmn:incoming>f_review_gw</bpmn:incoming><bpmn:outgoing>f_gw_approve</bpmn:outgoing><bpmn:outgoing>f_gw_reject</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:userTask id="approve" name="Approve (Admin)"><bpmn:incoming>f_gw_approve</bpmn:incoming><bpmn:outgoing>f_approve_notify2</bpmn:outgoing></bpmn:userTask>
+<bpmn:userTask id="reject" name="Reject with reason (Admin)"><bpmn:incoming>f_gw_reject</bpmn:incoming><bpmn:outgoing>f_reject_notify3</bpmn:outgoing></bpmn:userTask>
+<bpmn:serviceTask id="notify2" name="Notify the requester: approved"><bpmn:incoming>f_approve_notify2</bpmn:incoming><bpmn:outgoing>f_notify2_provision</bpmn:outgoing></bpmn:serviceTask>
+<bpmn:serviceTask id="notify3" name="Notify the requester: rejected (with reason)"><bpmn:incoming>f_reject_notify3</bpmn:incoming><bpmn:outgoing>f_notify3_endr</bpmn:outgoing></bpmn:serviceTask>
+<bpmn:userTask id="provision" name="Provision the access (outside the catalog, e.g. Entra group)"><bpmn:incoming>f_notify2_provision</bpmn:incoming><bpmn:outgoing>f_provision_done</bpmn:outgoing></bpmn:userTask>
+<bpmn:userTask id="done" name="Mark done"><bpmn:incoming>f_provision_done</bpmn:incoming><bpmn:outgoing>f_done_end</bpmn:outgoing></bpmn:userTask>
+<bpmn:endEvent id="end" name="Access granted"><bpmn:incoming>f_done_end</bpmn:incoming></bpmn:endEvent>
+<bpmn:endEvent id="endr" name="Request rejected"><bpmn:incoming>f_notify3_endr</bpmn:incoming></bpmn:endEvent>
+<bpmn:textAnnotation id="note"><bpmn:text>Requests and decisions appear in My Dashboard and the request list; Admins may delete requests</bpmn:text></bpmn:textAnnotation>
+<bpmn:sequenceFlow id="f_start_pick" sourceRef="start" targetRef="pick" name=""/>
+<bpmn:sequenceFlow id="f_pick_notify1" sourceRef="pick" targetRef="notify1" name=""/>
+<bpmn:sequenceFlow id="f_notify1_review" sourceRef="notify1" targetRef="review" name=""/>
+<bpmn:sequenceFlow id="f_review_gw" sourceRef="review" targetRef="gw" name=""/>
+<bpmn:sequenceFlow id="f_gw_approve" sourceRef="gw" targetRef="approve" name="yes"/>
+<bpmn:sequenceFlow id="f_gw_reject" sourceRef="gw" targetRef="reject" name="no"/>
+<bpmn:sequenceFlow id="f_approve_notify2" sourceRef="approve" targetRef="notify2" name=""/>
+<bpmn:sequenceFlow id="f_reject_notify3" sourceRef="reject" targetRef="notify3" name=""/>
+<bpmn:sequenceFlow id="f_notify3_endr" sourceRef="notify3" targetRef="endr" name=""/>
+<bpmn:sequenceFlow id="f_notify2_provision" sourceRef="notify2" targetRef="provision" name=""/>
+<bpmn:sequenceFlow id="f_provision_done" sourceRef="provision" targetRef="done" name=""/>
+<bpmn:sequenceFlow id="f_done_end" sourceRef="done" targetRef="end" name=""/>
+</bpmn:process><bpmndi:BPMNDiagram id="Diag"><bpmndi:BPMNPlane id="Plane" bpmnElement="Collab">
+<bpmndi:BPMNShape id="Pool_di" bpmnElement="Pool" isHorizontal="true"><dc:Bounds x="40" y="60" width="1340" height="540"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_req_di" bpmnElement="lane_req" isHorizontal="true"><dc:Bounds x="68" y="60" width="1312" height="150"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_own_di" bpmnElement="lane_own" isHorizontal="true"><dc:Bounds x="68" y="210" width="1312" height="240"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_sys_di" bpmnElement="lane_sys" isHorizontal="true"><dc:Bounds x="68" y="450" width="1312" height="150"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="182" y="117" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="pick_di" bpmnElement="pick"><dc:Bounds x="260" y="104" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="notify1_di" bpmnElement="notify1"><dc:Bounds x="260" y="494" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="review_di" bpmnElement="review"><dc:Bounds x="450" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="gw_di" bpmnElement="gw"><dc:Bounds x="642" y="267" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="approve_di" bpmnElement="approve"><dc:Bounds x="730" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="reject_di" bpmnElement="reject"><dc:Bounds x="530" y="359" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="notify2_di" bpmnElement="notify2"><dc:Bounds x="730" y="494" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="notify3_di" bpmnElement="notify3"><dc:Bounds x="530" y="494" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="provision_di" bpmnElement="provision"><dc:Bounds x="910" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="done_di" bpmnElement="done"><dc:Bounds x="1070" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="1262" y="267" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="endr_di" bpmnElement="endr"><dc:Bounds x="422" y="372" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="note_di" bpmnElement="note"><dc:Bounds x="1070" y="494" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNEdge id="f_start_pick_di" bpmnElement="f_start_pick"><di:waypoint x="218" y="135"/><di:waypoint x="260" y="135"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_pick_notify1_di" bpmnElement="f_pick_notify1"><di:waypoint x="330" y="166"/><di:waypoint x="330" y="494"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_notify1_review_di" bpmnElement="f_notify1_review"><di:waypoint x="400" y="525"/><di:waypoint x="422" y="525"/><di:waypoint x="422" y="285"/><di:waypoint x="450" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_review_gw_di" bpmnElement="f_review_gw"><di:waypoint x="590" y="285"/><di:waypoint x="642" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_gw_approve_di" bpmnElement="f_gw_approve"><di:waypoint x="678" y="285"/><di:waypoint x="730" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_gw_reject_di" bpmnElement="f_gw_reject"><di:waypoint x="642" y="285"/><di:waypoint x="600" y="285"/><di:waypoint x="600" y="359"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_approve_notify2_di" bpmnElement="f_approve_notify2"><di:waypoint x="800" y="316"/><di:waypoint x="800" y="494"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_reject_notify3_di" bpmnElement="f_reject_notify3"><di:waypoint x="600" y="421"/><di:waypoint x="600" y="494"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_notify3_endr_di" bpmnElement="f_notify3_endr"><di:waypoint x="530" y="525"/><di:waypoint x="440" y="525"/><di:waypoint x="440" y="408"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_notify2_provision_di" bpmnElement="f_notify2_provision"><di:waypoint x="870" y="525"/><di:waypoint x="952" y="525"/><di:waypoint x="952" y="285"/><di:waypoint x="910" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_provision_done_di" bpmnElement="f_provision_done"><di:waypoint x="1050" y="285"/><di:waypoint x="1070" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_done_end_di" bpmnElement="f_done_end"><di:waypoint x="1210" y="285"/><di:waypoint x="1262" y="285"/></bpmndi:BPMNEdge>
+</bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>

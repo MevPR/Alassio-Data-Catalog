@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_steward" targetNamespace="https://alassio.example/bpmn">
+<bpmn:collaboration id="Collab"><bpmn:participant id="Pool" name="Steward task" processRef="Proc"/></bpmn:collaboration>
+<bpmn:process id="Proc" isExecutable="false"><bpmn:laneSet id="Lanes">
+<bpmn:lane id="lane_pm" name="Project Manager · Admin"><bpmn:flowNodeRef>start</bpmn:flowNodeRef><bpmn:flowNodeRef>open</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="lane_sys" name="Alassio Data Catalog (system)"><bpmn:flowNodeRef>gw</bpmn:flowNodeRef><bpmn:flowNodeRef>nost</bpmn:flowNodeRef><bpmn:flowNodeRef>msg</bpmn:flowNodeRef><bpmn:flowNodeRef>audit</bpmn:flowNodeRef><bpmn:flowNodeRef>end</bpmn:flowNodeRef></bpmn:lane>
+<bpmn:lane id="lane_st" name="Data Steward"><bpmn:flowNodeRef>read</bpmn:flowNodeRef><bpmn:flowNodeRef>describe</bpmn:flowNodeRef></bpmn:lane>
+</bpmn:laneSet>
+<bpmn:startEvent id="start" name="Attributes lack business descriptions"><bpmn:outgoing>f_start_open</bpmn:outgoing></bpmn:startEvent>
+<bpmn:userTask id="open" name="Open the table page, &quot;Ask steward to describe attributes&quot;"><bpmn:incoming>f_start_open</bpmn:incoming><bpmn:outgoing>f_open_gw</bpmn:outgoing></bpmn:userTask>
+<bpmn:exclusiveGateway id="gw" name="Steward assigned?"><bpmn:incoming>f_open_gw</bpmn:incoming><bpmn:outgoing>f_gw_nost</bpmn:outgoing><bpmn:outgoing>f_gw_msg</bpmn:outgoing></bpmn:exclusiveGateway>
+<bpmn:endEvent id="nost" name="No steward — assign one in Governance Overview"><bpmn:incoming>f_gw_nost</bpmn:incoming></bpmn:endEvent>
+<bpmn:serviceTask id="msg" name="Send inbox message (+ e-mail copy) with a link to the table"><bpmn:incoming>f_gw_msg</bpmn:incoming><bpmn:outgoing>f_msg_read</bpmn:outgoing></bpmn:serviceTask>
+<bpmn:userTask id="read" name="Read the task in the inbox / My Dashboard"><bpmn:incoming>f_msg_read</bpmn:incoming><bpmn:outgoing>f_read_describe</bpmn:outgoing></bpmn:userTask>
+<bpmn:userTask id="describe" name="Describe the attributes: descriptions, glossary terms, sensitivity, classification"><bpmn:incoming>f_read_describe</bpmn:incoming><bpmn:outgoing>f_describe_audit</bpmn:outgoing></bpmn:userTask>
+<bpmn:serviceTask id="audit" name="Record the changes in the audit trail; glossary terms are created and linked"><bpmn:incoming>f_describe_audit</bpmn:incoming><bpmn:outgoing>f_audit_end</bpmn:outgoing></bpmn:serviceTask>
+<bpmn:endEvent id="end" name="Attributes documented"><bpmn:incoming>f_audit_end</bpmn:incoming></bpmn:endEvent>
+<bpmn:textAnnotation id="note"><bpmn:text>The effective steward is resolved through the inheritance chain (table → schema → database → domain); the account is matched by the person&#x27;s e-mail or name</bpmn:text></bpmn:textAnnotation>
+<bpmn:sequenceFlow id="f_start_open" sourceRef="start" targetRef="open" name=""/>
+<bpmn:sequenceFlow id="f_open_gw" sourceRef="open" targetRef="gw" name=""/>
+<bpmn:sequenceFlow id="f_gw_nost" sourceRef="gw" targetRef="nost" name="no"/>
+<bpmn:sequenceFlow id="f_gw_msg" sourceRef="gw" targetRef="msg" name="yes"/>
+<bpmn:sequenceFlow id="f_msg_read" sourceRef="msg" targetRef="read" name=""/>
+<bpmn:sequenceFlow id="f_read_describe" sourceRef="read" targetRef="describe" name=""/>
+<bpmn:sequenceFlow id="f_describe_audit" sourceRef="describe" targetRef="audit" name=""/>
+<bpmn:sequenceFlow id="f_audit_end" sourceRef="audit" targetRef="end" name=""/>
+</bpmn:process><bpmndi:BPMNDiagram id="Diag"><bpmndi:BPMNPlane id="Plane" bpmnElement="Collab">
+<bpmndi:BPMNShape id="Pool_di" bpmnElement="Pool" isHorizontal="true"><dc:Bounds x="40" y="60" width="1000" height="450"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_pm_di" bpmnElement="lane_pm" isHorizontal="true"><dc:Bounds x="68" y="60" width="972" height="150"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_sys_di" bpmnElement="lane_sys" isHorizontal="true"><dc:Bounds x="68" y="210" width="972" height="150"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="lane_st_di" bpmnElement="lane_st" isHorizontal="true"><dc:Bounds x="68" y="360" width="972" height="150"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="182" y="117" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="open_di" bpmnElement="open"><dc:Bounds x="270" y="104" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="gw_di" bpmnElement="gw"><dc:Bounds x="322" y="267" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="nost_di" bpmnElement="nost"><dc:Bounds x="182" y="267" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="msg_di" bpmnElement="msg"><dc:Bounds x="430" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="read_di" bpmnElement="read"><dc:Bounds x="430" y="404" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="describe_di" bpmnElement="describe"><dc:Bounds x="610" y="404" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="audit_di" bpmnElement="audit"><dc:Bounds x="610" y="254" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="842" y="267" width="36" height="36"/></bpmndi:BPMNShape>
+<bpmndi:BPMNShape id="note_di" bpmnElement="note"><dc:Bounds x="550" y="104" width="140" height="62"/></bpmndi:BPMNShape>
+<bpmndi:BPMNEdge id="f_start_open_di" bpmnElement="f_start_open"><di:waypoint x="218" y="135"/><di:waypoint x="270" y="135"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_open_gw_di" bpmnElement="f_open_gw"><di:waypoint x="340" y="166"/><di:waypoint x="340" y="267"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_gw_nost_di" bpmnElement="f_gw_nost"><di:waypoint x="322" y="285"/><di:waypoint x="218" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_gw_msg_di" bpmnElement="f_gw_msg"><di:waypoint x="358" y="285"/><di:waypoint x="430" y="285"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_msg_read_di" bpmnElement="f_msg_read"><di:waypoint x="500" y="316"/><di:waypoint x="500" y="404"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_read_describe_di" bpmnElement="f_read_describe"><di:waypoint x="570" y="435"/><di:waypoint x="610" y="435"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_describe_audit_di" bpmnElement="f_describe_audit"><di:waypoint x="680" y="404"/><di:waypoint x="680" y="316"/></bpmndi:BPMNEdge>
+<bpmndi:BPMNEdge id="f_audit_end_di" bpmnElement="f_audit_end"><di:waypoint x="750" y="285"/><di:waypoint x="842" y="285"/></bpmndi:BPMNEdge>
+</bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>
